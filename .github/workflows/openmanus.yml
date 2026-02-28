@@ -1,0 +1,52 @@
+name: Run OpenManus
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: 'The prompt to run OpenManus with'
+        required: true
+        default: 'Hello OpenManus, can you tell me a joke?'
+
+jobs:
+  run-openmanus:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Install Playwright Browsers
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Configure OpenManus
+        run: |
+          cp config/config.example.toml config/config.toml
+          # سيحتاج المستخدم لإضافة مفاتيح الـ API هنا أو عبر GitHub Secrets
+          # سنستخدم متغيرات البيئة لتعويضها في ملف التكوين لاحقاً إذا لزم الأمر
+
+      - name: Run OpenManus
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # يمكنك إضافة مفاتيح أخرى هنا
+        run: |
+          python main.py --prompt "${{ github.event.inputs.prompt }}"
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openmanus-workspace
+          path: workspace/
