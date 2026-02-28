@@ -1,4 +1,4 @@
-name: Run OpenManus
+name: Run OpenManus with Gemini
 
 on:
   workflow_dispatch:
@@ -31,16 +31,16 @@ jobs:
           pip install playwright
           playwright install --with-deps chromium
 
-      - name: Configure OpenManus
+      - name: Configure OpenManus for Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          cp config/config.example.toml config/config.toml
-          # سيحتاج المستخدم لإضافة مفاتيح الـ API هنا أو عبر GitHub Secrets
-          # سنستخدم متغيرات البيئة لتعويضها في ملف التكوين لاحقاً إذا لزم الأمر
+          # Use the config file we prepared
+          cp config/config.toml config/config_final.toml
+          # Replace the placeholder with the actual API key from secrets
+          sed -i "s/GEMINI_API_KEY_PLACEHOLDER/$GEMINI_API_KEY/g" config/config.toml
 
       - name: Run OpenManus
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # يمكنك إضافة مفاتيح أخرى هنا
         run: |
           python main.py --prompt "${{ github.event.inputs.prompt }}"
 
